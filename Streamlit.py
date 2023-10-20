@@ -72,7 +72,22 @@ fuel_type = st.sidebar.selectbox("Selecciona el tipo de combustible",
                                  ['Todos', 'Superior', 'Regular', 'Diesel'])
 
 
-df['Mes'] = df['FECHA'].dt.month_name(locale='es_ES')
+months_es = {
+    1: 'Enero',
+    2: 'Febrero',
+    3: 'Marzo',
+    4: 'Abril',
+    5: 'Mayo',
+    6: 'Junio',
+    7: 'Julio',
+    8: 'Agosto',
+    9: 'Septiembre',
+    10: 'Octubre',
+    11: 'Noviembre',
+    12: 'Diciembre'
+}
+
+df['Mes'] = df['FECHA'].dt.month.map(months_es)
 
 # Orden de los meses
 months_order = ['Enero', 'Febrero', 'Marzo',
