@@ -73,24 +73,42 @@ fuel_type = st.sidebar.selectbox("Selecciona el tipo de combustible",
                                  ['Todos', 'Superior', 'Regular', 'Diesel'])
 
 
-st.subheader("Precios Mensuales de Combustible")
-df['Mes'] = df['FECHA'].dt.month_name()
-if fuel_type == 'Todos':
-    fig1 = px.line(df, x='Mes', y=['Superior', 'Regular', 'Diesel'],
-                   title='Precios de combustible por mes')
-else:
-    fig1 = px.line(df, x='Mes', y=fuel_type,
-                   title=f'Precio de {fuel_type} por mes')
-st.plotly_chart(fig1)
+df['Mes'] = df['FECHA'].dt.month_name(locale='es_ES')
 
+# Orden de los meses
+months_order = ['Enero', 'Febrero', 'Marzo',
+                'Abril', 'Mayo', 'Junio', 'Julio',
+                'Agosto', 'Septiembre', 'Octubre',
+                'Noviembre', 'Diciembre']
+
+# Asigna un tipo categórico con el orden correcto a la columna 'Mes'
+df['Mes'] = pd.Categorical(df['Mes'], categories=months_order, ordered=True)
+
+# Agrupa por mes y calcula la media de los precios de cada tipo de combustible
+df_avg = df.groupby('Mes').agg(
+    {'Superior': 'mean', 'Regular': 'mean', 'Diesel': 'mean'}).reset_index()
+
+# Ahora la columna 'Mes' tiene un orden, entonces cuando grafiques,
+# los meses estarán en el orden correcto
+st.subheader("Precios Mensuales Promedio de Combustible")
+
+if fuel_type == 'Todos':
+    fig1 = px.line(df_avg, x='Mes', y=['Superior', 'Regular', 'Diesel'],
+                   title='Precios promedio de combustible por mes')
+else:
+    fig1 = px.line(df_avg, x='Mes', y=fuel_type,
+                   title=f'Precio promedio de {fuel_type} por mes')
+
+st.plotly_chart(fig1)
 
 st.subheader("Tendencia de precios a lo largo del tiempo")
 if fuel_type == 'Todos':
     fig2 = px.line(df, x='FECHA', y=['Superior', 'Regular', 'Diesel'],
                    title='Tendencia de precios a lo largo del tiempo')
 else:
+    title = f"Tendencia de precios de {fuel_type} a lo largo del tiempo"
     fig2 = px.line(df, x='FECHA', y=fuel_type,
-                   title=f'Tendencia de precios de {fuel_type} a lo largo del tiempo')
+                   title=title)
 st.plotly_chart(fig2)
 
 st.subheader("Predicciones de Precios")
@@ -111,10 +129,6 @@ elif model_choice == 'LSTM':
     model = list_models[1]
 else:
     model = list_models[2]
-
-# model.fit(x_train, y_train)
-# y_pred = model.predict(x_test)
-# st.write(f'Error Cuadrático Medio: {mean_squared_error(y_test, y_pred)}')
 
 
 def predict_future(model, last_sequence, future_steps):
@@ -141,29 +155,6 @@ def get_predictions(last_sequence):
     return future_predictions
 
 
-# def plot_predictions(fuel, predictions):
-    
-#     # Asegúrate de obtener los datos de entrenamiento correctos
-#     train_data_visualization = df[fuel].values
-
-#     # Gráfica comparando los datos de entrenamiento
-#     plt.figure(figsize=(15, 6))
-#     plt.plot(train_data_visualization, label='Datos de Entrenamiento',
-#              marker='o', color='blue')
-    
-#     plt.plot(range(len(train_data_visualization),
-#                    len(train_data_visualization) + len(predictions)),
-#              predictions,
-#              label='Predicciones', marker='x',
-#              color='orange')
-    
-#     plt.xlabel('Días desde el inicio de la serie')
-#     plt.ylabel(f'Precio del Combustible {fuel}')
-#     plt.title(f'Comparación de Datos de Entrenamiento, Predicciones y Datos Reales (2021 - 2023) para {fuel}')
-#     plt.legend()
-#     plt.grid(True)
-#     st.pyplot(plt)  # Muestra la gráfica en Streamlit
-
 def plot_predictions(fuel, predictions):
     
     # Create a copy of the original dataframe
@@ -174,7 +165,8 @@ def plot_predictions(fuel, predictions):
     df_vis['Mes'] = df_vis['FECHA'].dt.month_name()
     # Create a new dataframe for the predictions
     df_predictions = pd.DataFrame({
-        'FECHA': pd.date_range(df_vis['FECHA'].iloc[-1] + pd.Timedelta(days=1), periods=len(predictions)),
+        'FECHA': pd.date_range(df_vis['FECHA'].iloc[-1] + pd.Timedelta(days=1),
+                               periods=len(predictions)),
         'Predicciones': predictions.flatten()
     })
 
@@ -184,12 +176,14 @@ def plot_predictions(fuel, predictions):
     # Plot fuel price trend over time
     st.subheader(f"Predicciones para {fuel}")
     if fuel == 'Todos':
-        fig2 = px.line(df_vis, x='FECHA', y=['Superior', 'Regular', 'Diesel', 'Predicciones'], 
+        fig2 = px.line(df_vis, x='FECHA',
+                       y=['Superior', 'Regular', 'Diesel', 'Predicciones'],
                        title=f'Tendencia de precios de {fuel} a lo largo del tiempo')
     else:
-        fig2 = px.line(df_vis, x='FECHA', y=[fuel, 'Predicciones'], 
+        fig2 = px.line(df_vis, x='FECHA', y=[fuel, 'Predicciones'],
                        title=f'Tendencia de precios de {fuel} a lo largo del tiempo')
     st.plotly_chart(fig2)
+
 
 if fuel_type == 'Todos':
     for fuel in ['Superior', 'Regular', 'Diesel']:
