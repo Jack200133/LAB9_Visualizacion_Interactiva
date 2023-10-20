@@ -29,6 +29,7 @@ def custom_parser(date_str):
     return pd.to_datetime(date_str, format='%d-%b-%y', dayfirst=True)
 
 
+
 @st.cache_data
 def get_data() -> pd.DataFrame:
     return pd.read_csv('Precios.csv', parse_dates=['FECHA'],
@@ -91,24 +92,43 @@ df_avg = df.groupby('Mes').agg(
 # Ahora la columna 'Mes' tiene un orden, entonces cuando grafiques,
 # los meses estarán en el orden correcto
 st.subheader("Precios Mensuales Promedio de Combustible")
+colores = {
+    "Superior": "#C2272D",
+    "Regular": "#7D232D",
+    "Diesel": "#FBB039",
+}
+
+predicciones = {
+    "Superior": "#FBB039",
+    "Regular": "#C2272D",
+    "Diesel": "#7D232D",
+}
 
 if fuel_type == 'Todos':
+    # Extraer los valores del diccionario y pasarlos como lista
     fig1 = px.line(df_avg, x='Mes', y=['Superior', 'Regular', 'Diesel'],
-                   title='Precios promedio de combustible por mes')
+                   title='Precios promedio de combustible por mes',
+                   color_discrete_sequence=list(colores.values()))
 else:
+    # Obtener el color del diccionario usando fuel_type como clave
     fig1 = px.line(df_avg, x='Mes', y=fuel_type,
-                   title=f'Precio promedio de {fuel_type} por mes')
+                   title=f'Precio promedio de {fuel_type} por mes',
+                   color_discrete_sequence=[colores[fuel_type]])
+
+st.plotly_chart(fig1)
 
 st.plotly_chart(fig1)
 
 st.subheader("Tendencia de precios a lo largo del tiempo")
 if fuel_type == 'Todos':
     fig2 = px.line(df, x='FECHA', y=['Superior', 'Regular', 'Diesel'],
-                   title='Tendencia de precios a lo largo del tiempo')
+                   title='Tendencia de precios a lo largo del tiempo',
+                   color_discrete_sequence=list(colores.values()))
 else:
     title = f"Tendencia de precios de {fuel_type} a lo largo del tiempo"
     fig2 = px.line(df, x='FECHA', y=fuel_type,
-                   title=title)
+                   title=title,
+                   color_discrete_sequence=[colores[fuel_type]])
 st.plotly_chart(fig2)
 
 st.subheader("Predicciones de Precios")
@@ -178,10 +198,13 @@ def plot_predictions(fuel, predictions):
     if fuel == 'Todos':
         fig2 = px.line(df_vis, x='FECHA',
                        y=['Superior', 'Regular', 'Diesel', 'Predicciones'],
-                       title=f'Tendencia de precios de {fuel} a lo largo del tiempo')
+                       title=f'Tendencia de precios de {fuel} a lo largo del tiempo',
+                       color_discrete_sequence=list(colores.values()))
     else:
         fig2 = px.line(df_vis, x='FECHA', y=[fuel, 'Predicciones'],
-                       title=f'Tendencia de precios de {fuel} a lo largo del tiempo')
+                       title=f'Tendencia de precios de {fuel} a lo largo del tiempo',
+                       color_discrete_sequence=[colores[fuel],
+                                                predicciones[fuel]])
     st.plotly_chart(fig2)
 
 
