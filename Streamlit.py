@@ -7,6 +7,19 @@ from models import TimeSeriesPredictor_ModelWithDropout
 from models import TimeSeriesPredictor, TimeSeriesPredictor_Model
 from sklearn.preprocessing import MinMaxScaler
 
+# Añade este bloque de código al inicio de tu script
+st.markdown("""
+    <style>
+        div[data-testid="stSidebar"][aria-expanded="true"] > div:first-child {
+            width: 500px;
+        }
+    </style>
+    <script>
+        const sidebar = document.querySelector('div[data-testid="stSidebar"]');
+        if (sidebar) sidebar.setAttribute('aria-expanded', "true");
+    </script>
+""", unsafe_allow_html=True)
+
 
 def custom_parser(date_str):
     months_mapping = {
