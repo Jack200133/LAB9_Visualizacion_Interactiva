@@ -3,7 +3,6 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 import plotly.express as px
-import matplotlib.pyplot as plt
 from models import TimeSeriesPredictor_ModelWithDropout
 from models import TimeSeriesPredictor, TimeSeriesPredictor_Model
 from sklearn.preprocessing import MinMaxScaler
@@ -27,7 +26,6 @@ def custom_parser(date_str):
     for es, en in months_mapping.items():
         date_str = date_str.replace(es, en)
     return pd.to_datetime(date_str, format='%d-%b-%y', dayfirst=True)
-
 
 
 @st.cache_data
@@ -91,7 +89,7 @@ df_avg = df.groupby('Mes').agg(
 
 # Ahora la columna 'Mes' tiene un orden, entonces cuando grafiques,
 # los meses estarán en el orden correcto
-st.subheader("Precios Mensuales Promedio de Combustible")
+
 colores = {
     "Superior": "#C2272D",
     "Regular": "#7D232D",
@@ -104,6 +102,8 @@ predicciones = {
     "Diesel": "#7D232D",
 }
 
+
+st.subheader("Precios Mensuales Promedio de Combustible")
 if fuel_type == 'Todos':
     # Extraer los valores del diccionario y pasarlos como lista
     fig1 = px.line(df_avg, x='Mes', y=['Superior', 'Regular', 'Diesel'],
@@ -114,10 +114,8 @@ else:
     fig1 = px.line(df_avg, x='Mes', y=fuel_type,
                    title=f'Precio promedio de {fuel_type} por mes',
                    color_discrete_sequence=[colores[fuel_type]])
-
 st.plotly_chart(fig1)
 
-st.plotly_chart(fig1)
 
 st.subheader("Tendencia de precios a lo largo del tiempo")
 if fuel_type == 'Todos':
@@ -195,14 +193,16 @@ def plot_predictions(fuel, predictions):
 
     # Plot fuel price trend over time
     st.subheader(f"Predicciones para {fuel}")
+    title = f'Tendencia de precios de {fuel} a lo largo del tiempo'
     if fuel == 'Todos':
+
         fig2 = px.line(df_vis, x='FECHA',
                        y=['Superior', 'Regular', 'Diesel', 'Predicciones'],
-                       title=f'Tendencia de precios de {fuel} a lo largo del tiempo',
+                       title=title,
                        color_discrete_sequence=list(colores.values()))
     else:
         fig2 = px.line(df_vis, x='FECHA', y=[fuel, 'Predicciones'],
-                       title=f'Tendencia de precios de {fuel} a lo largo del tiempo',
+                       title=title,
                        color_discrete_sequence=[colores[fuel],
                                                 predicciones[fuel]])
     st.plotly_chart(fig2)
